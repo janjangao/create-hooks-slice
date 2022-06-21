@@ -1,22 +1,11 @@
 import { build, stop } from "https://deno.land/x/esbuild@v0.12.1/mod.js";
+import * as importMap from "https://esm.sh/esbuild-plugin-import-map";
 // import httpFetch from "https://deno.land/x/esbuild_plugin_http_fetch/index.js";
 
-await build({
-  bundle: true,
-  entryPoints: ["index.ts"],
-  outdir: "dist",
-  platform: "neutral",
-  plugins: [
-    // httpFetch,
-    externalAll(),
-  ],
-});
-
-stop();
+// Must not start with "/" or "./" or "../"
+const NON_NODE_MODULE_RE = /^[^.\/]|^\.[^.\/]|^\.\.[^\/]/;
 
 export function externalAll(skipNodeModulesBundle = true) {
-  // Must not start with "/" or "./" or "../"
-  const NON_NODE_MODULE_RE = /^[^.\/]|^\.[^.\/]|^\.\.[^\/]/;
   return {
     name: `external`,
 
@@ -34,3 +23,17 @@ export function externalAll(skipNodeModulesBundle = true) {
     },
   };
 }
+importMap.load("import_map.json");
+
+await build({
+  bundle: true,
+  entryPoints: ["index.ts"],
+  outfile: "mod.js",
+  platform: "neutral",
+  plugins: [
+    // httpFetch,
+    importMap.plugin(),
+  ],
+});
+
+stop();
