@@ -3,6 +3,11 @@
   "version": "0.0.1",
   "description": "",
   "module": "index.ts",
+  "main": "dist/index.js",
+  "exports": {
+    ".": "./index.ts",
+    "./core.ts": "./core.ts"
+  },
   "scripts": {
     "build": "npx --yes esbuild index.ts --bundle --platform=neutral --external:react --external:react-redux --external:redux --external:immer --external:proxy-memoize --outdir=dist",
     "mod": "deno run --allow-read --allow-env --allow-run scripts/esbuild.js "
