@@ -1,15 +1,14 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, user-scalable=no, shrink-to-fit=no"
-    />
-    <title>index</title>
-  </head>
-  <body>
-    <script type="importmap">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, shrink-to-fit=no" />
+  <title>index</title>
+</head>
+
+<body>
+  <script type="importmap">
       {
         "imports": {
           "create-hooks-slice": "./index.ts",
@@ -21,51 +20,91 @@
         }
       }
     </script>
-    <div id="root"></div>
-    <script type="module">
-      import { createStore, combineReducers } from "redux";
-      import createHooksSlice from "create-hooks-slice";
+  <div id="root"></div>
+  <script type="module">
+    import { createStore, combineReducers } from "redux";
+    import createHooksSlice from "create-hooks-slice";
 
-      const slice = createHooksSlice({
-        name: "counter",
-        initialData: { count: 0 },
-        reducers: {
-          increment: (data) => {
-            data.count++;
-            return data;
+    const slice = createHooksSlice({
+      name: "unpkgMeta",
+      initialData: { meta: {} },
+      reducers: {
+        meta: (data, payload) => {
+          data.meta = payload;
+        },
+        asyncMeta: {
+          pending: (data) => {
+            console.log("pending status and do nothing");
           },
-          decrement: (data) => {
-            data.count--;
+          fulfilled: (data, payload) => {
+            data.meta = payload;
           },
-          modify: (data, payload) => {
-            if (typeof payload === "number") data.count = payload;
-          },
-          asyncModify: {
-            pending: () => {},
-            fulfilled: (data, payload) => {
-              if (typeof payload === "number") data.count = payload;
-            },
+          rejected: (data, error) => {
+            throw error;
           },
         },
-      });
+      },
+      thunks: {
+        asyncMeta(query = {}) {
+          return fetch(`https://unpkg.com/${query.name}?meta`).then(
+            (resp) => {
+              if (!resp.headers.get("content-type")) {
+                return Promise.reject(
+                  new Error(`fetch ${query.name} unpkg meta error`)
+                );
+              }
+              return { name: moduleName, ...resp.json() };
+            }
+          );
+        },
+      },
+      selectors: {
+        metaPath(data) {
+          return data?.meta?.path
+        },
+        metaSize(data) {
+          return data?.meta?.size
+        },
+        metaLastModified(data) {
+          return data?.meta?.lastModified
+        },
+      },
+      resources: {
+        metaPath: "asyncMeta"
+      }
+    });
 
-      const store = createStore(
-        combineReducers({
-          [slice.name]: slice.reducer,
-        })
-      );
+    const store = createStore(
+      combineReducers({
+        [slice.name]: slice.reducer,
+      })
+    );
 
-      store.subscribe(() => console.log(store.getState()));
+    store.subscribe(() => console.log(store.getState()));
 
-      window.slice = {
-        actions: new Proxy(slice.actions, {
-          get(actions, prop) {
-            const action = Reflect.get(actions, prop);
-            return (...args) =>
-              store.dispatch(Reflect.apply(action, null, args));
-          },
-        }),
-      };
-    </script>
-  </body>
+    window.slice = {
+      actions: new Proxy(slice.actions, {
+        get(obj, prop) {
+          const value = Reflect.get(obj, prop);
+          return (...args) =>
+            store.dispatch(Reflect.apply(value, null, args));
+        },
+      }),
+      thunksActions: new Proxy(slice.thunkActions, {
+        get(obj, prop) {
+          const value = Reflect.get(obj, prop);
+          return (...args) =>
+            Reflect.apply(Reflect.apply(value, null, args), null, [store.dispatch]);
+        },
+      }),
+      selectors: new Proxy(slice.selectors, {
+        get(obj, prop) {
+          const value = Reflect.get(obj, prop);
+          return () => Reflect.apply(value, null, [store.getState()]);
+        },
+      }),
+    };
+  </script>
+</body>
+
 </html>

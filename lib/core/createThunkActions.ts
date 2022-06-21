@@ -101,7 +101,7 @@ function actionToThunkCallBack(action: ActionCreator): ThunkCallback {
 
 export default function createThunkActions(
   thunks: CaseQueryThunks,
-  actions: ActionCreators
+  actions: ActionCreators = {}
 ) {
   const thunkActions: ThunkActions = {};
   Object.keys(thunks).forEach((thunkName) => {
