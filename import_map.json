@@ -1,0 +1,9 @@
+{
+  "imports": {
+    "immer": "https://esm.sh/immer",
+    "proxy-memoize": "https://esm.sh/proxy-memoize",
+    "react": "https://esm.sh/react",
+    "redux": "https://esm.sh/redux",
+    "react-redux": "https://esm.sh/react-redux"
+  }
+}

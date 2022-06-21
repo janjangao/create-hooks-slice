@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no, shrink-to-fit=no"
+    />
+    <title>index</title>
+  </head>
+  <body>
+    <script type="importmap">
+      {
+        "imports": {
+          "create-hooks-slice": "./index.ts",
+          "immer": "https://esm.sh/immer",
+          "proxy-memoize": "https://esm.sh/proxy-memoize",
+          "react": "https://esm.sh/react",
+          "redux": "https://esm.sh/redux",
+          "react-redux": "https://esm.sh/react-redux"
+        }
+      }
+    </script>
+    <div id="root"></div>
+    <script type="module">
+      import { createStore, combineReducers } from "redux";
+      import createHooksSlice from "create-hooks-slice";
+
+      const counter = createHooksSlice({
+        name: "counter",
+        initialData: { count: 0 },
+        reducers: {
+          increment: (data) => {
+            data.count++;
+            return data;
+          },
+          decrement: (data) => {
+            data.count--;
+          },
+          modify: (data, payload) => {
+            if (typeof payload === "number") data.count = payload;
+          },
+          asyncModify: {
+            fulfilled: (data, payload) => {
+              if (typeof payload === "number") data.count = payload;
+            },
+          },
+        },
+      });
+
+      const store = createStore(
+        combineReducers({
+          [counter.name]: counter.reducer,
+        })
+      );
+
+      store.subscribe(() => console.log(store.getState()));
+
+      window.increment = () => store.dispatch(counter.actions.increment());
+      window.decrement = () => store.dispatch(counter.actions.decrement());
+      window.modify = (number) =>
+        store.dispatch(counter.actions.modify(number));
+      window.asyncModify = (number) =>
+        store.dispatch(counter.actions.asyncModifyFulfilled(number));
+    </script>
+  </body>
+</html>

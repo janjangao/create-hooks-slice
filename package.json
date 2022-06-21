@@ -1,0 +1,27 @@
+{
+  "name": "create-hooks-slice",
+  "version": "0.0.1",
+  "description": "",
+  "module": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hayond/create-hooks-slice.git"
+  },
+  "author": "Jan.Gao",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hayond/create-hooks-slice/issues"
+  },
+  "homepage": "https://github.com/hayond/create-hooks-slice#readme",
+  "dependencies": {
+    "immer": "^9.0.14"
+  },
+  "peerDependencies": {
+    "react": "^17",
+    "react-redux": "^7",
+    "redux": "^4"
+  }
+}
