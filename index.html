@@ -26,7 +26,7 @@
       import { createStore, combineReducers } from "redux";
       import createHooksSlice from "create-hooks-slice";
 
-      const counter = createHooksSlice({
+      const slice = createHooksSlice({
         name: "counter",
         initialData: { count: 0 },
         reducers: {
@@ -41,6 +41,7 @@
             if (typeof payload === "number") data.count = payload;
           },
           asyncModify: {
+            pending: () => {},
             fulfilled: (data, payload) => {
               if (typeof payload === "number") data.count = payload;
             },
@@ -50,18 +51,21 @@
 
       const store = createStore(
         combineReducers({
-          [counter.name]: counter.reducer,
+          [slice.name]: slice.reducer,
         })
       );
 
       store.subscribe(() => console.log(store.getState()));
 
-      window.increment = () => store.dispatch(counter.actions.increment());
-      window.decrement = () => store.dispatch(counter.actions.decrement());
-      window.modify = (number) =>
-        store.dispatch(counter.actions.modify(number));
-      window.asyncModify = (number) =>
-        store.dispatch(counter.actions.asyncModifyFulfilled(number));
+      window.slice = {
+        actions: new Proxy(slice.actions, {
+          get(actions, prop) {
+            const action = Reflect.get(actions, prop);
+            return (...args) =>
+              store.dispatch(Reflect.apply(action, null, args));
+          },
+        }),
+      };
     </script>
   </body>
 </html>

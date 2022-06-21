@@ -126,15 +126,16 @@ export function createActions<
       Object.keys(maybeAsyncReducer).forEach((key) => {
         const asyncType = key as keyof AsyncCaseDataReducer;
         const asyncReducerName = getAsyncReducerName(reducerName, asyncType);
+        const asyncReducerType = getType(name, asyncReducerName);
         const asyncFullNameReducer = maybeAsyncReducer[asyncType];
         if (asyncFullNameReducer) {
           const { caseReducer, prepareCallback } = extractCaseReducer<State>(
             convertToCaseReducer(asyncFullNameReducer)
           );
-          caseReducers[type] = caseReducer;
+          caseReducers[asyncReducerType] = caseReducer;
           actions[asyncReducerName] = prepareCallback
-            ? createAction(type, prepareCallback)
-            : createAction(type);
+            ? createAction(asyncReducerType, prepareCallback)
+            : createAction(asyncReducerType);
         }
       });
     } else {
