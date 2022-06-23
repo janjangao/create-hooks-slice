@@ -2,15 +2,16 @@
   "name": "create-hooks-slice",
   "version": "0.0.1",
   "description": "",
-  "module": "index.ts",
-  "main": "dist/index.js",
+  "module": "dist/lib/index.ts",
   "exports": {
-    ".": "./index.ts",
-    "./core.ts": "./core.ts"
+    ".": "./dist/lib/index.ts",
+    "./core.ts": "./lib/dist/core.ts"
   },
   "scripts": {
-    "build": "npx --yes esbuild index.ts --bundle --platform=neutral --external:react --external:react-redux --external:redux --external:immer --external:proxy-memoize --outdir=dist",
-    "mod": "deno run --allow-read --allow-env --allow-run scripts/esbuild.js "
+    "build": "npm run build:ts && npm run build:js",
+    "build:ts": "babel --extensions .ts,.tsx --keep-file-extension --plugins @babel/plugin-syntax-typescript,./scripts/plugin-remove-ts-extension.js lib -d dist/lib",
+    "build:js": "babel --extensions .ts,.tsx --plugins @babel/plugin-transform-typescript,./scripts/plugin-remove-ts-extension.js lib -d dist/js",
+    "mod": "babel --extensions .ts,.tsx --keep-file-extension --plugins @babel/plugin-syntax-typescript,./scripts/plugin-import-map.js lib -d mod"
   },
   "repository": {
     "type": "git",
@@ -30,5 +31,11 @@
     "react": "^17",
     "react-redux": "^7",
     "redux": "^4"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.17.10",
+    "@babel/core": "^7.18.5",
+    "@babel/plugin-syntax-typescript": "^7.17.12",
+    "@babel/plugin-transform-typescript": "^7.18.4"
   }
 }
