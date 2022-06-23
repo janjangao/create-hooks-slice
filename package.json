@@ -1,6 +1,6 @@
 {
   "name": "create-hooks-slice",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "",
   "module": "dist/lib/index.ts",
   "exports": {
