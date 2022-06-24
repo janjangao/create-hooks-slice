@@ -58,6 +58,3 @@ package-lock.json
 
 # CocoaPods
 /ios/Pods/
-
-# Web
-dist/
