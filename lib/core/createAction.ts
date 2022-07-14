@@ -1,31 +1,39 @@
 import type { AnyAction } from "redux";
 
-export type PrepareAction<Payload> = (...args: unknown[]) => {
-  payload: Payload;
-  meta?: unknown;
-  error?: unknown;
+export type PrepareAction<Payload, PreparedPayload> = (payload?: Payload) => {
+  payload?: PreparedPayload;
+  meta?: any;
+  error?: any;
 };
 
-export interface PayloadAction<Payload = unknown>
-  extends AnyAction {
-  payload: Payload;
+export interface PayloadAction<Payload> extends AnyAction {
+  payload?: Payload;
+  meta?: any;
+  error?: any;
 }
 
-export type ActionCreator<Payload = unknown> = (
-  payload?: Payload
-) => PayloadAction<Payload>;
+export type ActionCreator<Payload, finalPayload = Payload> = (
+  payload: Payload
+) => PayloadAction<finalPayload>;
 
-export type ActionCreators<Payload = unknown> = {
-  [key: string]: ActionCreator<Payload>;
+export type ActionCreatorWithoutPayload<finalPayload = undefined> =
+  () => PayloadAction<finalPayload>;
+
+export type ActionCreatorOptionalPayload<Payload = undefined> =
+  | ActionCreatorWithoutPayload
+  | ActionCreator<Payload>;
+
+export type ActionCreators = {
+  [key: string]: ActionCreatorOptionalPayload<any>;
 };
 
-export default function createAction(
+export default function createAction<Payload, PreparedPayload = Payload>(
   type: string,
-  prepareAction?: PrepareAction<unknown>
-): ActionCreator {
-  function actionCreator(...args: unknown[]) {
+  prepareAction?: PrepareAction<Payload, PreparedPayload>
+) {
+  function actionCreator(payload?: Payload) {
     if (prepareAction) {
-      const prepared = prepareAction(...args);
+      const prepared = prepareAction(payload);
       if (!prepared) {
         throw new Error("prepareAction did not return an object");
       }
@@ -37,7 +45,7 @@ export default function createAction(
         ...("error" in prepared && { error: prepared.error }),
       };
     }
-    return { type, payload: args[0] };
+    return { type, payload };
   }
 
   actionCreator.toString = () => `${type}`;

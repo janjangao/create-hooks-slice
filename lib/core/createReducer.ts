@@ -2,7 +2,7 @@ import type { Reducer, Action } from "redux";
 import type { Draft } from "immer";
 import createNextState from "immer";
 
-export type CaseReducer<State = unknown, TypeAction extends Action = Action> = (
+export type CaseReducer<State, TypeAction extends Action = Action> = (
   state: State | Draft<State>,
   action: TypeAction
 ) => State | void | Draft<State>;

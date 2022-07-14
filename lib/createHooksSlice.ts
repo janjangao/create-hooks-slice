@@ -1,110 +1,113 @@
-import type { Reducer } from "redux";
-import type {
-  CaseDataReducers,
-  DataStatusState,
-  ActionCreators,
-  PayloadAction,
-  ActionHook,
-  Status,
-} from "./createReducerActions.ts";
-import createReducerActions, {
-  createActionHooksFromActions,
+import type { CaseDataReducers } from "./core/createActions.ts";
+import createActionHooks, {
+  createReducerActions,
   setResourceStatusReducerName,
-} from "./createReducerActions.ts";
+} from "./createActionHooks.ts";
 import type {
   CaseQueryThunks,
   ThunkActions,
-  ThunkHook,
-} from "./createThunkActions.ts";
-import createThunkActions, {
-  createThunkHooksFromThunkActions,
-} from "./createThunkActions.ts";
+} from "./core/createThunkActions.ts";
+import type { ThunkHooks } from "./createThunkHooks.ts";
+import createThunkHooks, { createThunkActions } from "./createThunkHooks.ts";
 import type {
   CaseDataSelectors,
   Selectors,
-  Selector,
-  SelectorHook,
+  SelectorHooks,
 } from "./createSelectorHooks.ts";
-import {
+import createSelectorHooks, {
   createSelectors,
-  createSelectorHooksFromSelectors,
   getResourceStatusSelectorName,
 } from "./createSelectorHooks.ts";
 import type {
   CaseQueryResources,
-  ResourceHook,
+  ResourceHooks,
 } from "./createResourceHooks.ts";
 import createResourceHooks from "./createResourceHooks.ts";
 
 export type CreateHooksSliceOptions<
-  Data = unknown,
-  Name extends string = string
+  Name,
+  Data,
+  CaseDataReducers,
+  CaseQueryThunks,
+  CaseDataSelectors,
+  CaseQueryResources
 > = {
   name: Name;
   initialData: Data | (() => Data);
-  reducers: CaseDataReducers<Data>;
+  reducers: CaseDataReducers;
   thunks?: CaseQueryThunks;
-  selectors?: CaseDataSelectors<Data>;
+  selectors?: CaseDataSelectors;
   resources?: CaseQueryResources;
 };
 
-export type HooksSlice<State = unknown, Name extends string = string> = {
-  name: Name;
-  reducer: Reducer<State, PayloadAction>;
-  actions: ActionCreators;
-  thunkActions: ThunkActions;
-  selectors: Selectors<State>;
-  hooks: {
-    [key: string]: ActionHook | ThunkHook | SelectorHook | ResourceHook;
-  };
-};
-
-export default function createHooksSlice<Data, Name extends string = string>(
-  options: CreateHooksSliceOptions<Data, Name>
-): HooksSlice<DataStatusState<Data>> {
+export default function createHooksSlice<
+  Name extends string = string,
+  Data = any,
+  CDRS extends CaseDataReducers<Data> = CaseDataReducers<Data>,
+  CQTS extends CaseQueryThunks = CaseQueryThunks,
+  CDSS extends CaseDataSelectors<Data> = CaseDataSelectors<Data>,
+  CQRS extends CaseQueryResources = CaseQueryResources
+>(options: CreateHooksSliceOptions<Name, Data, CDRS, CQTS, CDSS, CQRS>) {
   const {
     name: optionName,
     initialData,
     reducers,
     thunks,
-    selectors: dataSelectors,
+    selectors: caseDataSelectors,
     resources,
   } = options;
-  const { name, reducer, actions } = createReducerActions<Data>(
+  const { name, reducer, caseReducers, actions } = createReducerActions(
     optionName,
     initialData,
     reducers
   );
 
-  const thunkActions: ThunkActions = {};
-  const selectors: Selectors = {};
-  const actionHooks = createActionHooksFromActions(actions);
-  const hooks = { ...actionHooks };
+  const actionHooks = createActionHooks(actions);
+
+  let thunkActions = {} as ThunkActions<CQTS>;
+  let thunkHooks = {} as ThunkHooks<typeof thunkActions>;
+  let selectors = {} as Selectors<Data, CDSS>;
+  let selectorHooks = {} as SelectorHooks<typeof selectors>;
+  let resourceHooks = {} as ResourceHooks<
+    CQRS,
+    typeof selectors,
+    typeof thunkActions
+  >;
 
   if (thunks) {
-    Object.assign(thunkActions, createThunkActions(thunks, actions));
-    const thunkHooks = createThunkHooksFromThunkActions(thunkActions);
-    Object.assign(hooks, thunkHooks);
+    thunkActions = createThunkActions(thunks, actions);
+    thunkHooks = createThunkHooks(thunkActions);
   }
-  if (dataSelectors) {
-    Object.assign(selectors, createSelectors(name, dataSelectors));
-    const selectorHooks = createSelectorHooksFromSelectors(selectors);
-    Object.assign(hooks, selectorHooks);
+  if (caseDataSelectors) {
+    selectors = createSelectors(name, caseDataSelectors);
+    selectorHooks = createSelectorHooks(selectors);
   }
   if (resources) {
-    const getResourceStatus = selectors[
-      getResourceStatusSelectorName
-    ] as Selector<unknown, Status>;
+    const getResourceStatus = selectors[getResourceStatusSelectorName];
     const setResourceStatus = actions[setResourceStatusReducerName];
-    const resourceHooks = createResourceHooks(
+    resourceHooks = createResourceHooks(
       resources,
       selectors,
       thunkActions,
       getResourceStatus,
       setResourceStatus
     );
-    Object.assign(hooks, resourceHooks);
   }
 
-  return { name, reducer, actions, thunkActions, selectors, hooks };
+  const hooks = {
+    ...actionHooks,
+    ...thunkHooks,
+    ...selectorHooks,
+    ...resourceHooks,
+  };
+
+  return {
+    name,
+    reducer,
+    caseReducers,
+    actions,
+    thunkActions,
+    selectors,
+    hooks,
+  };
 }

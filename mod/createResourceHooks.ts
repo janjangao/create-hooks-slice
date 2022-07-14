@@ -1,17 +1,17 @@
-import { useSelector, useDispatch, shallowEqual } from "https://esm.sh/react-redux";
-import type { StatusProps, ActionCreator, Status, PayloadAction } from "./createReducerActions.ts";
-import type { Selectors, Selector, RootDataStatusState } from "./createSelectorHooks.ts";
-import type { ThunkActions, ThunkAction } from "./createThunkActions.ts";
-export type CaseQueryResources<ThunkActionName = string> = {
-  [key: string]: ThunkActionName;
+import { shallowEqual, useDispatch, useSelector } from "https://esm.sh/react-redux";
+import type { ActionCreator, PayloadAction } from "./core/createAction.ts";
+import type { Status, StatusProps } from "./createActionHooks.ts";
+import type { AnySelector, AnySelectors } from "./createSelectorHooks.ts";
+import type { ThunkAction, ThunkActions } from "./createThunkHooks.ts";
+export type CaseQueryResources = {
+  [key: string]: string;
 };
 export type ResourceResult<Result> = {
   data: Result;
 } & StatusProps;
-export type ResourceHook<Query = unknown, Result = unknown> = (query?: Query, deps?: unknown[]) => ResourceResult<Result> | Result;
-export type ResourceHooks<Query = unknown, Result = unknown> = {
-  [key: string]: ResourceHook<Query, Result>;
-};
+export type ResourceHook<S extends AnySelector<any, any>, TA extends ThunkAction<any, any>, HT extends HookType> = TA extends (query: infer Query, thunkCallback: any) => any ? S extends (state: any) => infer Result ? HT extends HookType.RESOURCE ? (query: Query, deps?: any[]) => ResourceResult<Result> : HT extends HookType.STATUS ? () => StatusProps : (query: Query, deps?: any[]) => Result : never : never;
+type CkeyResourceHook<CKey, S extends AnySelector<any, any>, TAS extends ThunkActions, HT extends HookType> = { [TKey in Extract<keyof TAS, CKey>]: ResourceHook<S, TAS[TKey], HT> }[Extract<keyof TAS, CKey>];
+export type ResourceHooks<CQRS extends CaseQueryResources, SS extends AnySelectors<any>, TAS extends ThunkActions> = { [Key in Extract<keyof CQRS, keyof SS> as `useResource${Capitalize<Key & string>}`]: CkeyResourceHook<CQRS[Key], SS[Key], TAS, HookType.RESOURCE> } & { [Key in Extract<keyof CQRS, keyof SS> as `useSuspense${Capitalize<Key & string>}`]: CkeyResourceHook<CQRS[Key], SS[Key], TAS, HookType.SUSPENSE> } & { [Key in Extract<keyof CQRS, keyof SS> as `useStatus${Capitalize<Key & string>}`]: CkeyResourceHook<CQRS[Key], SS[Key], TAS, HookType.STATUS> };
 enum HookType {
   RESOURCE = "useResource",
   SUSPENSE = "useSuspense",
@@ -34,21 +34,21 @@ const initialStatus = {
   error: undefined
 };
 
-function makeStatusSelector(getResourceStatus: Selector<RootDataStatusState, Status>, resourceName: string) {
-  return (state: RootDataStatusState) => {
+function makeStatusSelector<State>(getResourceStatus: AnySelector<State, Status>, resourceName: string) {
+  return (state: State) => {
     const resourceStatus = getResourceStatus(state);
     return resourceStatus ? resourceStatus[resourceName] : initialStatus;
   };
 }
 
-function makeStatusAction(setResourceStatus: ActionCreator, resourceName: string) {
+function makeStatusAction(setResourceStatus: ActionCreator<Status>, resourceName: string) {
   return (payload: StatusProps) => setResourceStatus({
     [resourceName]: payload
   });
 }
 
-function makeResourceHook(selector: Selector, statusSelector: Selector<RootDataStatusState, StatusProps>, statusAction: (payload: StatusProps) => PayloadAction<unknown>, thunkAction?: ThunkAction) {
-  return (query?: unknown, deps?: unknown[], hookType: HookType = HookType.RESOURCE) => {
+function makeResourceHook<State>(selector: AnySelector<State, any>, statusSelector: AnySelector<State, StatusProps>, statusAction: (payload: StatusProps) => PayloadAction<StatusProps>, thunkAction?: ThunkAction<any, any>) {
+  return (query?: any, deps?: any[], hookType: HookType = HookType.RESOURCE) => {
     const dispatch = useDispatch();
     const data = useSelector(selector);
     const status = useSelector(statusSelector);
@@ -56,10 +56,11 @@ function makeResourceHook(selector: Selector, statusSelector: Selector<RootDataS
     const {
       deps: statusDeps,
       isLoaded,
-      isFetching
+      isFetching,
+      isError
     } = status;
 
-    if (thunkAction && !isFetching && (deps !== undefined && !shallowEqual(statusDeps, deps) || !isLoaded)) {
+    if (thunkAction && !isFetching && (deps !== undefined && !shallowEqual(statusDeps, deps) || !isLoaded && !isError)) {
       const resultPromise = thunkAction(query, {
         pending: dispatch => {
           const payload: StatusProps = {
@@ -97,6 +98,7 @@ function makeResourceHook(selector: Selector, statusSelector: Selector<RootDataS
             payload.isLoaded = false;
           }
 
+          if (deps !== undefined) payload.deps = deps;
           dispatch(statusAction(payload));
           if (hookType === HookType.ERROR_SUSPENSE) throw error;
         }
@@ -111,8 +113,10 @@ function makeResourceHook(selector: Selector, statusSelector: Selector<RootDataS
   };
 }
 
-export default function createResourceHooks(resources: CaseQueryResources, selectors: Selectors, thunkActions: ThunkActions, getResourceStatus: Selector<RootDataStatusState, Status>, setResourceStatus: ActionCreator) {
-  const resourceHooks: ResourceHooks = {};
+export default function createResourceHooks<State = any, CQRS extends CaseQueryResources = CaseQueryResources, SS extends AnySelectors<State> = AnySelectors<State>, TAS extends ThunkActions = ThunkActions>(resources: CQRS, selectors: SS, thunkActions: TAS, getResourceStatus: AnySelector<State, Status>, setResourceStatus: ActionCreator<Status>) {
+  const resourceHooks: {
+    [k: string]: any;
+  } = {};
   Object.keys(resources).forEach(resourceName => {
     if (resourceName in selectors) {
       const selector = selectors[resourceName];
@@ -126,5 +130,5 @@ export default function createResourceHooks(resources: CaseQueryResources, selec
       resourceHooks[getResourceHookName(resourceName, HookType.STATUS)] = resourceHook;
     }
   });
-  return resourceHooks;
+  return (resourceHooks as ResourceHooks<CQRS, SS, TAS>);
 }

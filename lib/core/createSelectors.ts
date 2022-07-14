@@ -1,58 +1,54 @@
 import proxyMemoize from "proxy-memoize";
 
-export type CaseSelector<State = unknown, Result = unknown> = (
-  state: State
-) => Result;
+export type CaseSelector<State, Result> = (state: State) => Result;
 
-export type CaseSelectors<State = unknown> = {
-  [key: string]: CaseSelector<State>;
+export type CaseSelectors<State> = {
+  [key: string]: CaseSelector<State, any>;
 };
 
-export type Selector<State = unknown, Result = unknown> = (
-  state: State
-) => Result;
+export type Selector<CS extends CaseSelector<any, any>> = CS extends (
+  state: infer State
+) => infer Result
+  ? (state: State) => Result
+  : never;
 
-export type Selectors<State = unknown, Result = unknown> = {
-  [key: string]: Selector<State, Result>;
+export type Selectors<CSS extends CaseSelectors<any>> = {
+  [Key in keyof CSS]: Selector<CSS[Key]>;
 };
 
-export type RootState<NameState> = {
-  [name: string]: NameState;
-};
-
-export function memoize<State = unknown>(
-  fn: (obj: State) => unknown,
+export function memoize<State = any>(
+  fn: (obj: State) => any,
   options?: { size?: number }
 ) {
-  return proxyMemoize<any, unknown>(fn, options);
+  return proxyMemoize<any, any>(fn, options);
 }
 
 export function memoizeWithArgs(
-  fnWithArgs: (...args: unknown[]) => unknown,
+  fnWithArgs: (...args: any[]) => any,
   options?: { size?: number }
 ) {
-  const fn = proxyMemoize((args: unknown[]) => fnWithArgs(...args), options);
-  return (...args: unknown[]) => fn(args);
+  const fn = proxyMemoize((args: any[]) => fnWithArgs(...args), options);
+  return (...args: any[]) => fn(args);
 }
 
-export function createSelector<State = unknown>(
-  caseSelector: CaseSelector<State>
-): Selector<State> {
+export function createSelector<State, Result>(
+  caseSelector: CaseSelector<State, Result>
+) {
   return memoize(caseSelector);
 }
 
 export default function createSelectors<
-  NameState = unknown,
-  State = RootState<NameState>
->(caseSelectors: CaseSelectors<State>) {
+  State,
+  CSS extends CaseSelectors<State> = CaseSelectors<State>
+>(caseSelectors: CSS) {
   const selectorNames = Object.keys(caseSelectors);
 
-  const selectors: Selectors<State> = {};
+  const selectors: { [k: string]: any } = {};
 
   selectorNames.forEach((selectorName) => {
     const caseSelector = caseSelectors[selectorName];
-    selectors[selectorName] = createSelector<State>(caseSelector);
+    selectors[selectorName] = createSelector<State, any>(caseSelector);
   });
 
-  return selectors;
+  return selectors as Selectors<CSS>;
 }
