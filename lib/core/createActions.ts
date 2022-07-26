@@ -185,7 +185,7 @@ function convertToCaseReducer<
       reducer: (state, action) => {
         const draftData = caseDataReducer.reducer(state.data, action.payload);
         if (draftData !== undefined) {
-          state.data = draftData;
+          state.data = draftData as Data | Draft<Data>;
           return state;
         }
       },
@@ -195,7 +195,7 @@ function convertToCaseReducer<
     return (state, action: PayloadAction<Payload>) => {
       const draftData = caseDataReducer(state.data, action.payload);
       if (draftData !== undefined) {
-        state.data = draftData;
+        state.data = draftData as Data | Draft<Data>;
         return state;
       }
     };

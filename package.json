@@ -6,7 +6,7 @@
     "dist/*"
   ],
   "module": "dist/lib/index.ts",
-  "types": "dist/lib/index.ts",
+  "types": "dist/type/index.d.ts",
   "exports": {
     ".": "./dist/lib/index.ts",
     "./core.ts": "./dist/lib/core.ts"
@@ -14,14 +14,15 @@
   "typesVersions": {
     "*": {
       "core.ts": [
-        "dist/lib/core.ts"
+        "dist/type/core.d.ts"
       ]
     }
   },
   "scripts": {
-    "build": "npm run build:ts && npm run build:js",
+    "build": "npm run build:ts && npm run build:js && build:type",
     "build:ts": "babel --extensions .ts,.tsx --keep-file-extension --plugins @babel/plugin-syntax-typescript,./scripts/plugin-remove-ts-extension.js lib -d dist/lib",
     "build:js": "babel --extensions .ts,.tsx --plugins @babel/plugin-transform-typescript,./scripts/plugin-remove-ts-extension.js lib -d dist/js",
+    "build:type": "tsc",
     "mod": "babel --extensions .ts,.tsx --keep-file-extension --plugins @babel/plugin-syntax-typescript,./scripts/plugin-import-map.js lib -d mod"
   },
   "repository": {
@@ -47,6 +48,7 @@
     "@babel/cli": "^7.17.10",
     "@babel/core": "^7.18.5",
     "@babel/plugin-syntax-typescript": "^7.17.12",
-    "@babel/plugin-transform-typescript": "^7.18.4"
+    "@babel/plugin-transform-typescript": "^7.18.4",
+    "typescript": "^4.7.4"
   }
 }
