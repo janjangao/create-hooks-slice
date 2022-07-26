@@ -64,7 +64,17 @@ function setResourceStatusCaseReducer(
   state: DataStatusState<any>,
   action: PayloadAction<Status>
 ) {
-  Object.assign(state.status, action.payload);
+  if (action.payload) {
+    const actionPayload = action.payload;
+    Object.keys(action.payload).forEach((thunkName) => {
+      const resourceStatus = actionPayload[thunkName];
+      if (state.status[thunkName]) {
+        Object.assign(state.status[thunkName], resourceStatus);
+      } else {
+        state.status[thunkName] = resourceStatus;
+      }
+    });
+  }
 }
 
 export function createReducerActions<

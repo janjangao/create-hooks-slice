@@ -11,8 +11,8 @@ export type CaseQueryThunks = {
 };
 
 type ThunkCallback<Payload, Error> = (
-  dispatch: Dispatch,
-  payloadOrError?: Payload | Error
+  payloadOrError: Payload | Error | undefined,
+  dispatch: Dispatch
 ) => void;
 
 export type PeriodThunkCallback<Payload, Error> = {
@@ -28,6 +28,7 @@ export type OptionalThunkCallback<Payload, Error> =
 export type ThunkAction<CQT extends CaseQueryThunk<any, any>> =
   CQT extends () => Promise<infer Result>
     ? (
+        query?: undefined,
         thunkCallback?: OptionalThunkCallback<Result, any>
       ) => (dispatch: Dispatch) => Promise<Result>
     : CQT extends (query: infer Query) => Promise<infer Result>
@@ -66,9 +67,9 @@ function combineTwoThunkCallbacks<Payload, Error>(
   second?: ThunkCallback<Payload, Error>
 ) {
   return first && second
-    ? (dispatch: Dispatch, payloadOrError?: any) => {
-        first(dispatch, payloadOrError);
-        second(dispatch, payloadOrError);
+    ? (payloadOrError: any, dispatch: Dispatch) => {
+        first(payloadOrError, dispatch);
+        second(payloadOrError, dispatch);
       }
     : first || second;
 }
@@ -78,25 +79,27 @@ function combineThunkCallbacks<Payload, Error>(
 ): PeriodThunkCallback<Payload, Error> {
   return (
     thunkCallbacks.length > 0
-      ? thunkCallbacks.reduce((prev, next) => {
-          const prevThunkCallback = normalizeThunkCallback(prev);
-          const nextThunkCallback = normalizeThunkCallback(next);
-          const resultThunkCallback: PeriodThunkCallback<Payload, Error> = {
-            pending: combineTwoThunkCallbacks(
-              prevThunkCallback.pending,
-              nextThunkCallback.pending
-            ),
-            fulfilled: combineTwoThunkCallbacks(
-              prevThunkCallback.fulfilled,
-              nextThunkCallback.fulfilled
-            ) as ThunkCallback<Payload, Error>,
-            rejected: combineTwoThunkCallbacks(
-              prevThunkCallback.rejected,
-              nextThunkCallback.rejected
-            ),
-          };
-          return resultThunkCallback;
-        })
+      ? thunkCallbacks.length === 1
+        ? normalizeThunkCallback(thunkCallbacks[0])
+        : thunkCallbacks.reduce((prev, next) => {
+            const prevThunkCallback = normalizeThunkCallback(prev);
+            const nextThunkCallback = normalizeThunkCallback(next);
+            const resultThunkCallback: PeriodThunkCallback<Payload, Error> = {
+              pending: combineTwoThunkCallbacks(
+                prevThunkCallback.pending,
+                nextThunkCallback.pending
+              ),
+              fulfilled: combineTwoThunkCallbacks(
+                prevThunkCallback.fulfilled,
+                nextThunkCallback.fulfilled
+              ) as ThunkCallback<Payload, Error>,
+              rejected: combineTwoThunkCallbacks(
+                prevThunkCallback.rejected,
+                nextThunkCallback.rejected
+              ),
+            };
+            return resultThunkCallback;
+          })
       : {}
   ) as PeriodThunkCallback<Payload, Error>;
 }
@@ -104,7 +107,7 @@ function combineThunkCallbacks<Payload, Error>(
 function actionToThunkCallBack(
   action: ActionCreatorOptionalPayload
 ): ThunkCallback<any, any> {
-  return (dispatch: Dispatch, payloadOrError?: any) => {
+  return (payloadOrError: any, dispatch: Dispatch) => {
     dispatch(action(payloadOrError));
   };
 }
@@ -117,7 +120,7 @@ export default function createThunkActions<CQTS extends CaseQueryThunks>(
   Object.keys(thunks).forEach((thunkName) => {
     const thunk = thunks[thunkName];
 
-    const actionThunkCallbacks: { [k: string]: any } = {};
+    let actionThunkCallback: any = undefined;
     const pendingActionName = `${thunkName}Pending`;
     const fulfilledActionName = `${thunkName}Fulfilled`;
     const rejectedActionName = `${thunkName}Rejected`;
@@ -126,7 +129,7 @@ export default function createThunkActions<CQTS extends CaseQueryThunks>(
       const pendingAction = actions[pendingActionName];
       const fulfilledAction = actions[fulfilledActionName];
       const rejectedAction = actions[rejectedActionName];
-      const actionThunkCallback = action
+      actionThunkCallback = action
         ? actionToThunkCallBack(action)
         : {
             pending: pendingAction
@@ -137,26 +140,24 @@ export default function createThunkActions<CQTS extends CaseQueryThunks>(
               ? actionToThunkCallBack(rejectedAction)
               : undefined,
           };
-      actionThunkCallbacks[thunkName] = actionThunkCallback;
     }
 
     thunkActions[thunkName] =
       (query?: any, thunkCallback?: OptionalThunkCallback<any, any>) =>
       async (dispatch: Dispatch) => {
-        const actionThunkCallback = actionThunkCallbacks[thunkName];
         const thunkCallbacks = [actionThunkCallback, thunkCallback].filter(
           (v): v is OptionalThunkCallback<any, any> => !!v
         );
         const finalThunkCallback = combineThunkCallbacks(...thunkCallbacks);
         const { pending, fulfilled, rejected } = finalThunkCallback;
-        if (pending) pending(dispatch);
+        if (pending) pending(undefined, dispatch);
         try {
           const result = await thunk(query);
-          if (fulfilled) fulfilled(dispatch, result);
+          if (fulfilled) fulfilled(result, dispatch);
           return result;
         } catch (error) {
           if (rejected) {
-            rejected(dispatch, error);
+            rejected(error, dispatch);
           } else {
             throw error;
           }

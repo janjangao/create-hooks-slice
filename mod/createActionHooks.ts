@@ -33,7 +33,18 @@ type SetResourceStatusActions = {
 export const setResourceStatusReducerName = "_setResourceStatus";
 
 function setResourceStatusCaseReducer(state: DataStatusState<any>, action: PayloadAction<Status>) {
-  Object.assign(state.status, action.payload);
+  if (action.payload) {
+    const actionPayload = action.payload;
+    Object.keys(action.payload).forEach(thunkName => {
+      const resourceStatus = actionPayload[thunkName];
+
+      if (state.status[thunkName]) {
+        Object.assign(state.status[thunkName], resourceStatus);
+      } else {
+        state.status[thunkName] = resourceStatus;
+      }
+    });
+  }
 }
 
 export function createReducerActions<Data = any, Name extends string = string, CDRS extends CaseDataReducers<Data> = CaseDataReducers<Data>>(name: Name, initialData: Data | (() => Data), reducers: CDRS) {

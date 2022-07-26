@@ -1,12 +1,12 @@
 {
   "name": "create-hooks-slice",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "",
   "files": ["dist/*"],
   "module": "dist/lib/index.ts",
   "exports": {
     ".": "./dist/lib/index.ts",
-    "./core.ts": "./lib/dist/core.ts"
+    "./core.ts": "./dist/lib/core.ts"
   },
   "scripts": {
     "build": "npm run build:ts && npm run build:js",

@@ -15,7 +15,7 @@ export type CreateHooksSliceOptions<Name, Data, CaseDataReducers, CaseQueryThunk
   selectors?: CaseDataSelectors;
   resources?: CaseQueryResources;
 };
-export default function createHooksSlice<Name extends string = string, Data = any, CDRS extends CaseDataReducers<Data> = CaseDataReducers<Data>, CQTS extends CaseQueryThunks = CaseQueryThunks, CDSS extends CaseDataSelectors<Data> = CaseDataSelectors<Data>, CQRS extends CaseQueryResources = CaseQueryResources>(options: CreateHooksSliceOptions<Name, Data, CDRS, CQTS, CDSS, CQRS>) {
+export function createFullHooksSlice<Name extends string = string, Data = any, CDRS extends CaseDataReducers<Data> = CaseDataReducers<Data>, CQTS extends CaseQueryThunks = CaseQueryThunks, CDSS extends CaseDataSelectors<Data> = CaseDataSelectors<Data>, CQRS extends CaseQueryResources = CaseQueryResources>(options: CreateHooksSliceOptions<Name, Data, CDRS, CQTS, CDSS, CQRS>) {
   const {
     name: optionName,
     initialData,
@@ -53,11 +53,6 @@ export default function createHooksSlice<Name extends string = string, Data = an
     resourceHooks = createResourceHooks(resources, selectors, thunkActions, getResourceStatus, setResourceStatus);
   }
 
-  const hooks = { ...actionHooks,
-    ...thunkHooks,
-    ...selectorHooks,
-    ...resourceHooks
-  };
   return {
     name,
     reducer,
@@ -65,6 +60,33 @@ export default function createHooksSlice<Name extends string = string, Data = an
     actions,
     thunkActions,
     selectors,
-    hooks
+    actionHooks,
+    thunkHooks,
+    selectorHooks,
+    resourceHooks
+  };
+}
+export default function createHooksSlice<Name extends string = string, Data = any, CDRS extends CaseDataReducers<Data> = CaseDataReducers<Data>, CQTS extends CaseQueryThunks = CaseQueryThunks, CDSS extends CaseDataSelectors<Data> = CaseDataSelectors<Data>, CQRS extends CaseQueryResources = CaseQueryResources>(options: CreateHooksSliceOptions<Name, Data, CDRS, CQTS, CDSS, CQRS>) {
+  const {
+    name,
+    reducer,
+    caseReducers,
+    actions,
+    thunkActions,
+    selectors,
+    actionHooks,
+    thunkHooks,
+    selectorHooks,
+    resourceHooks
+  } = createFullHooksSlice(options);
+  return {
+    name,
+    reducer,
+    actionHooks,
+    thunkHooks,
+    selectorHooks,
+    resourceHooks,
+    actions,
+    thunkActions
   };
 }

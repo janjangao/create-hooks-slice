@@ -6,7 +6,7 @@ export type ThunkAction<Query, Result> = (query?: Query, thunkCallback?: Optiona
 export type ThunkActions = {
   [key: string]: ThunkAction<any, any>;
 };
-export type ThunkHook<TA extends ThunkAction<any, any>> = TA extends () => (dispatch: any) => Promise<infer Result> ? () => () => Promise<Result> : TA extends (query: infer Query, thunkCallback: infer ThunkCallback) => (dispatch: any) => Promise<infer Result> ? <HookQuery = Query | undefined, HookThunkCallback = ThunkCallback | undefined>(query?: HookQuery, thunkCallback?: HookThunkCallback) => HookQuery extends undefined ? (query: Query, thunkCallback?: ThunkCallback) => Promise<Result> : (query?: Query, thunkCallback?: ThunkCallback) => Promise<Result> : never;
+export type ThunkHook<TA extends ThunkAction<any, any>> = TA extends (query?: undefined, thunkCallback?: infer ThunkCallback) => (dispatch: any) => Promise<infer Result> ? (query?: undefined, thunkCallback?: ThunkCallback) => (query?: undefined, thunkCallback?: ThunkCallback) => Promise<Result> : TA extends (query: infer Query, thunkCallback: infer ThunkCallback) => (dispatch: any) => Promise<infer Result> ? <HookQuery extends Query | undefined, HookThunkCallback extends ThunkCallback | undefined>(query?: HookQuery, thunkCallback?: HookThunkCallback) => HookQuery extends undefined ? (query: Query, thunkCallback?: ThunkCallback) => Promise<Result> : (query?: Query, thunkCallback?: ThunkCallback) => Promise<Result> : never;
 export type ThunkHooks<TAS extends ThunkActions> = { [Key in keyof TAS as `useThunk${Capitalize<Key & string>}`]: ThunkHook<TAS[Key]> };
 
 function getThunkHookName(thunkName: string): string {

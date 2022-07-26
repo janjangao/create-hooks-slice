@@ -12,17 +12,21 @@ export type ThunkActions = {
   [key: string]: ThunkAction<any, any>;
 };
 
-export type ThunkHook<TA extends ThunkAction<any, any>> = TA extends () => (
-  dispatch: any
-) => Promise<infer Result>
-  ? () => () => Promise<Result>
+export type ThunkHook<TA extends ThunkAction<any, any>> = TA extends (
+  query?: undefined,
+  thunkCallback?: infer ThunkCallback
+) => (dispatch: any) => Promise<infer Result>
+  ? (
+      query?: undefined,
+      thunkCallback?: ThunkCallback
+    ) => (query?: undefined, thunkCallback?: ThunkCallback) => Promise<Result>
   : TA extends (
       query: infer Query,
       thunkCallback: infer ThunkCallback
     ) => (dispatch: any) => Promise<infer Result>
   ? <
-      HookQuery = Query | undefined,
-      HookThunkCallback = ThunkCallback | undefined
+      HookQuery extends Query | undefined,
+      HookThunkCallback extends ThunkCallback | undefined
     >(
       query?: HookQuery,
       thunkCallback?: HookThunkCallback

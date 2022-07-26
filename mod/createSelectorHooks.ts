@@ -61,6 +61,14 @@ export function createSelectors<Data = any, Name extends string = string, CDSS e
     ...getResourceStatusSelectors
   } as Selectors<Data, CDSS>);
 }
+export function createSelectorHook<S extends AnySelector<any, any>>(selector: S) {
+  const selectorHooks = (selectorTransformer?: (data: any) => any, deps?: any[]) => {
+    const finalSelector = selectorTransformer && deps ? useMemo(() => makeSelector(selector, memoizeWithArgs(selectorTransformer)), deps) : selectorTransformer ? makeSelector(selector, selectorTransformer) : selector;
+    return useSelector(finalSelector);
+  };
+
+  return (selectorHooks as SelectorHook<S>);
+}
 export default function createSelectorHooks<SS extends AnySelectors<any> = AnySelectors<any>>(selectors: SS) {
   const selectorHooks: {
     [k: string]: any;
@@ -68,11 +76,7 @@ export default function createSelectorHooks<SS extends AnySelectors<any> = AnySe
   Object.keys(selectors).forEach(selectorName => {
     const selector = selectors[selectorName];
     const selectorHookName = getSelectorHookName(selectorName);
-
-    selectorHooks[selectorHookName] = (selectorTransformer?: (data: any) => any, deps?: any[]) => {
-      const finalSelector = selectorTransformer && deps ? useMemo(() => makeSelector(selector, memoizeWithArgs(selectorTransformer)), deps) : selectorTransformer ? makeSelector(selector, selectorTransformer) : selector;
-      return useSelector(finalSelector);
-    };
+    selectorHooks[selectorHookName] = createSelectorHook(selector);
   });
   return (selectorHooks as SelectorHooks<SS>);
 }

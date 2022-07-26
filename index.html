@@ -11,99 +11,24 @@
   <script type="importmap">
       {
         "imports": {
-          "create-hooks-slice": "./index.ts",
           "immer": "https://esm.sh/immer",
           "proxy-memoize": "https://esm.sh/proxy-memoize",
           "react": "https://esm.sh/react",
           "redux": "https://esm.sh/redux",
-          "react-redux": "https://esm.sh/react-redux"
+          "react-redux": "https://esm.sh/react-redux",
+          "react-dom/client": "https://esm.sh/react-dom/client"
         }
       }
     </script>
   <div id="root"></div>
   <script type="module">
-    import { createStore, combineReducers } from "redux";
-    import createHooksSlice from "create-hooks-slice";
+    import { createRoot } from "react-dom/client";
+    import main from "./index.tsx";
 
-    const slice = createHooksSlice({
-      name: "unpkgMeta",
-      initialData: { meta: {} },
-      reducers: {
-        meta: (data, payload) => {
-          data.meta = payload;
-        },
-        asyncMeta: {
-          pending: (data) => {
-            console.log("pending status and do nothing");
-          },
-          fulfilled: (data, payload) => {
-            data.meta = payload;
-          },
-          rejected: (data, error) => {
-            throw error;
-          },
-        },
-      },
-      thunks: {
-        asyncMeta(query = {}) {
-          return fetch(`https://unpkg.com/${query.name}?meta`).then(
-            (resp) => {
-              if (!resp.headers.get("content-type")) {
-                return Promise.reject(
-                  new Error(`fetch ${query.name} unpkg meta error`)
-                );
-              }
-              return { name: moduleName, ...resp.json() };
-            }
-          );
-        },
-      },
-      selectors: {
-        metaPath(data) {
-          return data?.meta?.path
-        },
-        metaSize(data) {
-          return data?.meta?.size
-        },
-        metaLastModified(data) {
-          return data?.meta?.lastModified
-        },
-      },
-      resources: {
-        metaPath: "asyncMeta"
-      }
-    });
-
-    const store = createStore(
-      combineReducers({
-        [slice.name]: slice.reducer,
-      })
-    );
-
-    store.subscribe(() => console.log(store.getState()));
-
-    window.slice = {
-      actions: new Proxy(slice.actions, {
-        get(obj, prop) {
-          const value = Reflect.get(obj, prop);
-          return (...args) =>
-            store.dispatch(Reflect.apply(value, null, args));
-        },
-      }),
-      thunksActions: new Proxy(slice.thunkActions, {
-        get(obj, prop) {
-          const value = Reflect.get(obj, prop);
-          return (...args) =>
-            Reflect.apply(Reflect.apply(value, null, args), null, [store.dispatch]);
-        },
-      }),
-      selectors: new Proxy(slice.selectors, {
-        get(obj, prop) {
-          const value = Reflect.get(obj, prop);
-          return () => Reflect.apply(value, null, [store.getState()]);
-        },
-      }),
-    };
+    const props = {};
+    const rootElement = document.querySelector("#root");
+    const root = createRoot(rootElement);
+    root.render(main(props));
   </script>
 </body>
 
