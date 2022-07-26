@@ -19,7 +19,7 @@ export default function TinyProxyPolyfill(this: any, target: any, handler: Recor
   handler = {}; // only supported traps
 
   for (const k in unsafeHandler) {
-    if (supportedTraps.includes(k)) handler[k] = unsafeHandler[k];
+    if (supportedTraps.indexOf(k) !== -1) handler[k] = unsafeHandler[k];
   }
 
   let proxy = this;
