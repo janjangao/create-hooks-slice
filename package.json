@@ -19,7 +19,7 @@
     }
   },
   "scripts": {
-    "build": "npm run build:ts && npm run build:js && build:type",
+    "build": "npm run build:ts && npm run build:js && npm run build:type",
     "build:ts": "babel --extensions .ts,.tsx --keep-file-extension --plugins @babel/plugin-syntax-typescript,./scripts/plugin-remove-ts-extension.js lib -d dist/lib",
     "build:js": "babel --extensions .ts,.tsx --plugins @babel/plugin-transform-typescript,./scripts/plugin-remove-ts-extension.js lib -d dist/js",
     "build:type": "tsc",
