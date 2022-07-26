@@ -37,7 +37,7 @@
   "homepage": "https://github.com/hayond/create-hooks-slice#readme",
   "dependencies": {
     "immer": "^9.0.14",
-    "proxy-memoize": "^1.1.0"
+    "proxy-memoize": "https://pkg.csb.dev/dai-shi/proxy-memoize/commit/46f60d83/proxy-memoize"
   },
   "peerDependencies": {
     "react": "^17",
@@ -49,9 +49,10 @@
     "@babel/core": "^7.18.5",
     "@babel/plugin-syntax-typescript": "^7.17.12",
     "@babel/plugin-transform-typescript": "^7.18.4",
-    "@types/react": "^18.2.0",
-    "@types/react-redux": "^8.0.2",
-    "@types/redux": "^4.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-redux": "^8.0.2",
+    "redux": "^4.2.0",
     "typescript": "^4.7.4"
   }
 }
