@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, shrink-to-fit=no" />
+  <title>index</title>
+</head>
+
+<body>
+  <script type="importmap">
+      {
+        "imports": {
+          "immer": "https://esm.sh/immer",
+          "proxy-memoize": "https://esm.sh/proxy-memoize",
+          "react": "https://esm.sh/react",
+          "redux": "https://esm.sh/redux",
+          "react-redux": "https://esm.sh/react-redux",
+          "react-dom/client": "https://esm.sh/react-dom/client"
+        }
+      }
+    </script>
+  <div id="root"></div>
+  <script type="module">
+    import { createRoot } from "react-dom/client";
+    import main from "./index.tsx";
+
+    const props = {};
+    const rootElement = document.querySelector("#root");
+    const root = createRoot(rootElement);
+    root.render(main(props));
+  </script>
+</body>
+
+</html>
