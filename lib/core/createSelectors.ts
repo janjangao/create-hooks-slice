@@ -1,4 +1,4 @@
-import proxyMemoize from "proxy-memoize";
+import proxyMemoize from 'proxy-memoize/dist/index.modern.js';
 
 export type CaseSelector<State, Result> = (state: State) => Result;
 
