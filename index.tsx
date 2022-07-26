@@ -68,7 +68,7 @@ const petSlice = createHooksSlice({
           if (tag) tagSet.add(tag.name);
         });
       });
-      return [...tagSet];
+      return Array.from(tagSet);
     },
     currentPet(data) {
       console.log("select current pet...");

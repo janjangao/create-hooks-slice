@@ -37,7 +37,7 @@
   "homepage": "https://github.com/hayond/create-hooks-slice#readme",
   "dependencies": {
     "immer": "^9.0.14",
-    "proxy-memoize": "https://pkg.csb.dev/dai-shi/proxy-memoize/commit/46f60d83/proxy-memoize"
+    "proxy-memoize": "^1.1.0"
   },
   "peerDependencies": {
     "react": "^17",
