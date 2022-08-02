@@ -109,12 +109,12 @@ export function TestAction() {
   ];
   const { useActionAvailableList, useActionSelectedPet } = actionHooks;
   // get action function after calling action hook
-  const availableListAction = useActionAvailableList();
-  const selectedPetAction = useActionSelectedPet();
+  const dispatchAvailableList = useActionAvailableList();
+  const dispatchSelectedPet = useActionSelectedPet();
   useEffect(() => {
     // it's similar with `dispatch({ type: "pet/availableList", payload: pets });`
-    availableListAction(pets);
-    selectedPetAction(pets[0]);
+    dispatchAvailableList(pets);
+    dispatchSelectedPet(pets[0]);
   }, []);
   return null;
 }
@@ -179,7 +179,7 @@ export function PetNav() {
                 style={{ marginRight: 20, cursor: "pointer" }}
                 onClick={refetch}
               >
-                {tag.toUpperCase()}
+                {tag && tag.toUpperCase()}
               </div>
             ))}
           </div>
