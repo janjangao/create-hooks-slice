@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "lib": ["ES2017", "DOM"],
+    "outDir": "dist/type",
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "esModuleInterop": true
+  },
+  "include": ["dist/lib/**/*"]
+}
