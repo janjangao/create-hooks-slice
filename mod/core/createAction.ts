@@ -11,7 +11,7 @@ export interface PayloadAction<Payload> extends AnyAction {
 }
 export type ActionCreator<Payload, finalPayload = Payload> = (payload: Payload) => PayloadAction<finalPayload>;
 export type ActionCreatorWithoutPayload<finalPayload = undefined> = () => PayloadAction<finalPayload>;
-export type ActionCreatorOptionalPayload<Payload = undefined> = ActionCreatorWithoutPayload | ActionCreator<Payload>;
+export type ActionCreatorOptionalPayload<Payload = any> = Payload extends undefined ? ActionCreatorWithoutPayload : ActionCreator<Payload>;
 export type ActionCreators = {
   [key: string]: ActionCreatorOptionalPayload<any>;
 };

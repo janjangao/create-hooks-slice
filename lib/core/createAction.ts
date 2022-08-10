@@ -19,7 +19,7 @@ export type ActionCreator<Payload, finalPayload = Payload> = (
 export type ActionCreatorWithoutPayload<finalPayload = undefined> =
   () => PayloadAction<finalPayload>;
 
-export type ActionCreatorOptionalPayload<Payload = undefined> =
+export type ActionCreatorOptionalPayload<Payload = any> =
   Payload extends undefined
     ? ActionCreatorWithoutPayload
     : ActionCreator<Payload>;

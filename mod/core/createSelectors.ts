@@ -1,4 +1,6 @@
-import proxyMemoize from "https://esm.sh/proxy-memoize";
+import proxyMemoizeModule from "https://esm.sh/proxy-memoize"; // @ts-expect-error something wrong with the format in the lib `proxy-memoize`, check this thread https://github.com/dai-shi/proxy-memoize/pull/48
+
+const proxyMemoize = proxyMemoizeModule.default || proxyMemoizeModule;
 export type CaseSelector<State, Result> = (state: State) => Result;
 export type CaseSelectors<State> = {
   [key: string]: CaseSelector<State, any>;
@@ -8,7 +10,7 @@ export type Selectors<CSS extends CaseSelectors<any>> = { [Key in keyof CSS]: Se
 export function memoize<State = any>(fn: (obj: State) => any, options?: {
   size?: number;
 }) {
-  return proxyMemoize<any, any>(fn, options);
+  return proxyMemoize(fn, options);
 }
 export function memoizeWithArgs(fnWithArgs: (...args: any[]) => any, options?: {
   size?: number;
