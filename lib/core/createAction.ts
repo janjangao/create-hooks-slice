@@ -12,12 +12,12 @@ export interface PayloadAction<Payload> extends AnyAction {
   error?: any;
 }
 
-export type ActionCreator<Payload, finalPayload = Payload> = (
+export type ActionCreator<Payload, FinalPayload = Payload> = (
   payload: Payload
-) => PayloadAction<finalPayload>;
+) => PayloadAction<FinalPayload>;
 
-export type ActionCreatorWithoutPayload<finalPayload = undefined> =
-  () => PayloadAction<finalPayload>;
+export type ActionCreatorWithoutPayload<FinalPayload = undefined> =
+  () => PayloadAction<FinalPayload>;
 
 export type ActionCreatorOptionalPayload<Payload = any> =
   Payload extends undefined
@@ -49,7 +49,7 @@ export default function createAction<Payload, PreparedPayload = Payload>(
     return { type, payload };
   }
 
-  actionCreator.toString = () => `${type}`;
+  actionCreator.toString = () => type;
 
   return actionCreator;
 }
