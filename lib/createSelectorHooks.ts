@@ -114,22 +114,25 @@ export function createSelectors<
 export function createSelectorHook<S extends AnySelector<any, any>>(
   selector: S
 ) {
-  const selectorHooks = (
+  const useSelectorHook = (
     selectorTransformer?: (data: any) => any,
     deps?: any[]
   ) => {
-    const finalSelector =
-      selectorTransformer && deps
-        ? useMemo(
-            () => makeSelector(selector, memoizeWithArgs(selectorTransformer)),
-            deps
-          )
-        : selectorTransformer
-        ? makeSelector(selector, selectorTransformer)
-        : selector;
+    const memoSelector = useMemo(
+      () =>
+        selectorTransformer && deps
+          ? makeSelector(selector, memoizeWithArgs(selectorTransformer))
+          : undefined,
+      deps
+    );
+    const finalSelector = memoSelector
+      ? memoSelector
+      : selectorTransformer
+      ? makeSelector(selector, selectorTransformer)
+      : selector;
     return useSelector(finalSelector);
   };
-  return selectorHooks as SelectorHook<S>;
+  return useSelectorHook as SelectorHook<S>;
 }
 
 export default function createSelectorHooks<

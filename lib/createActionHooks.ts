@@ -137,7 +137,7 @@ export default function createActionHooks<
   Object.keys(actions).forEach((actionName) => {
     const action = actions[actionName];
     const actionHookName = getActionHookName(actionName);
-    actionHooks[actionHookName] = (hookPayload?: any) => {
+    const useActionHook = (hookPayload?: any) => {
       const dispatch = useDispatch();
       return (payload?: any) => {
         if (payload === undefined && hookPayload !== undefined)
@@ -146,6 +146,7 @@ export default function createActionHooks<
         return dispatch(payloadAction);
       };
     };
+    actionHooks[actionHookName] = useActionHook;
   });
   return actionHooks as ActionHooks<ACS>;
 }

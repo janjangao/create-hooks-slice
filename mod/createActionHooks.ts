@@ -92,7 +92,7 @@ export default function createActionHooks<ACS extends ActionCreators = ActionCre
     const action = actions[actionName];
     const actionHookName = getActionHookName(actionName);
 
-    actionHooks[actionHookName] = (hookPayload?: any) => {
+    const useActionHook = (hookPayload?: any) => {
       const dispatch = useDispatch();
       return (payload?: any) => {
         if (payload === undefined && hookPayload !== undefined) payload = hookPayload;
@@ -100,6 +100,8 @@ export default function createActionHooks<ACS extends ActionCreators = ActionCre
         return dispatch(payloadAction);
       };
     };
+
+    actionHooks[actionHookName] = useActionHook;
   });
   return (actionHooks as ActionHooks<ACS>);
 }

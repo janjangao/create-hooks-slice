@@ -21,7 +21,7 @@ export default function createThunkHooks<TAS extends ThunkActions = ThunkActions
     const thunkAction = thunkActions[actionName];
     const actionHookName = getThunkHookName(actionName);
 
-    thunkHooks[actionHookName] = (hookQuery: any, hookThunkCallback?: OptionalThunkCallback<any, any>) => {
+    const useThunkHook = (hookQuery: any, hookThunkCallback?: OptionalThunkCallback<any, any>) => {
       const dispatch = useDispatch();
       return (query: any, thunkCallback?: OptionalThunkCallback<any, any>) => {
         if (query === undefined && hookQuery !== undefined) query = hookQuery;
@@ -29,6 +29,8 @@ export default function createThunkHooks<TAS extends ThunkActions = ThunkActions
         return thunkAction(query, thunkCallback)(dispatch);
       };
     };
+
+    thunkHooks[actionHookName] = useThunkHook;
   });
   return (thunkHooks as ThunkHooks<TAS>);
 }

@@ -52,7 +52,7 @@ export default function createThunkHooks<
   Object.keys(thunkActions).forEach((actionName) => {
     const thunkAction = thunkActions[actionName];
     const actionHookName = getThunkHookName(actionName);
-    thunkHooks[actionHookName] = (
+    const useThunkHook = (
       hookQuery: any,
       hookThunkCallback?: OptionalThunkCallback<any, any>
     ) => {
@@ -64,6 +64,7 @@ export default function createThunkHooks<
         return thunkAction(query, thunkCallback)(dispatch);
       };
     };
+    thunkHooks[actionHookName] = useThunkHook;
   });
   return thunkHooks as ThunkHooks<TAS>;
 }
