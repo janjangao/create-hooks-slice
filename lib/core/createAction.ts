@@ -19,10 +19,13 @@ export type ActionCreator<Payload, FinalPayload = Payload> = (
 export type ActionCreatorWithoutPayload<FinalPayload = undefined> =
   () => PayloadAction<FinalPayload>;
 
-export type ActionCreatorOptionalPayload<Payload = any> =
-  Payload extends undefined
+export type ActionCreatorOptionalPayload<Payload = any> = [Payload] extends [
+  undefined
+]
+  ? Payload extends undefined
     ? ActionCreatorWithoutPayload
-    : ActionCreator<Payload>;
+    : ActionCreator<Payload>
+  : ActionCreator<Payload>;
 
 export type ActionCreators = {
   [key: string]: ActionCreatorOptionalPayload<any>;
